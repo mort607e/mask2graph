@@ -1,6 +1,7 @@
 from typing import Tuple
 import numpy as np
 import cv2
+from skimage.morphology import skeletonize, remove_small_holes
 
 import os
 import sys
@@ -8,13 +9,6 @@ parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 from preprocess.patch_preprocessing import open_tif
 
-
-#TODO: Functions to make
-# 1. MORPH_OPEN
-# 2. MORPH_CLOSE
-# 3. Area ratio
-
-# 4. construct kernel
 
 def binaryMaskCheck(mask: np.ndarray) -> None:
     """
@@ -110,6 +104,27 @@ def filter_components_by_area_ratio(mask: np.ndarray, max_area_ratio: float = 0.
             clean_mask[labels == label] = 1
 
     return clean_mask
+
+def fill_small_holes(mask: np.ndarray, min_area: int = 1, *args, **kwargs) -> np.ndarray:
+    
+    """
+    Removes all holes (pixels in a neighbourhood) smaller than the specified area.
+
+    Args:
+    mask: np.ndarray (uint8)
+    min_area: int
+        Minimum area of holes to be filled.
+    *args: Additional positional arguments passed to `remove_small_holes`.
+    **kwargs: Additional keyword arguments passed to `remove_small_holes`.
+
+
+    Returns:
+    np.ndarray
+        Mask with small holes filled.
+    """
+
+    filled_mask= remove_small_holes(mask.astype(bool), area_threshold=min_area, *args, **kwargs)
+    return filled_mask.astype(np.uint8)
     
 
 if __name__ == '__main__':
@@ -131,29 +146,38 @@ if __name__ == '__main__':
 
     print("Filtering components by area ratio:")
     filtered_mask = filter_components_by_area_ratio(morph_closed_mask, max_area_ratio=0.15)
+
+    print("Removing holes:")
+    filled_mask = fill_small_holes(filtered_mask, 25000) #exaggeration
     print("Done")
 
-       # Plot the masks
+
+    # Plot the masks
     import matplotlib.pyplot as plt
 
-    plt.figure(figsize=(12, 4))
+    plt.figure(figsize=(16, 4))
 
     # Original mask
-    plt.subplot(1, 3, 1)
+    plt.subplot(1, 4, 1)
     plt.title("Original Mask")
     plt.imshow(mask, cmap='gray')
     plt.axis('off')
 
     # After morphological operations
-    plt.subplot(1, 3, 2)
+    plt.subplot(1, 4, 2)
     plt.title("Morphological Operations")
     plt.imshow(morph_closed_mask, cmap='gray')
     plt.axis('off')
 
     # Final filtered mask
-    plt.subplot(1, 3, 3)
+    plt.subplot(1, 4, 3)
     plt.title("Filtered Mask")
     plt.imshow(filtered_mask, cmap='gray')
+    plt.axis('off')
+
+    plt.subplot(1, 4, 4)
+    plt.title("Filled Mask (exaggeration)")
+    plt.imshow(filled_mask, cmap='gray')
     plt.axis('off')
 
     plt.tight_layout()

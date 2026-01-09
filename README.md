@@ -39,6 +39,8 @@ clean_mask = filter_components_by_area_ratio(
     morph_closed,
     max_area_ratio=0.15
 )
+
+filled_mask = fill_small_holes(filtered_mask, 250)
 ```
 
 An example of the effect of these operations is shown below:
