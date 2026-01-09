@@ -128,6 +128,9 @@ def fill_small_holes(mask: np.ndarray, min_area: int = 1, *args, **kwargs) -> np
     
 
 if __name__ == '__main__':
+    # For plot of the masks
+    import matplotlib.pyplot as plt
+
     tif_path = r"data\sample\Predicted_Mask_Bramaputra_2020-03-02.tif"
     result = open_tif(tif_path)
     mask: np.ndarray = result[0][0]
@@ -150,10 +153,6 @@ if __name__ == '__main__':
     print("Removing holes:")
     filled_mask = fill_small_holes(filtered_mask, 25000) #exaggeration
     print("Done")
-
-
-    # Plot the masks
-    import matplotlib.pyplot as plt
 
     plt.figure(figsize=(16, 4))
 
